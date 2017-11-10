@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -40,11 +41,17 @@ public class Model  extends JFrame {
 
     private Map<Integer, List<Wall>> walls;
 
+    private List<Integer> floorPlanIds;
+
+    private String currentMap = "FirstMap";
+
     public Model(Map<Integer, List<Wall>> walls, Map<Integer, BufferedImage> floorPlanImages) {
 
         super("Model");
         this.floorPlanImages = floorPlanImages;
         this.walls = walls;
+        this.floorPlanIds = new ArrayList<>(walls.keySet());
+        Collections.sort(floorPlanIds);
         initializeModel();
     }
 
@@ -57,7 +64,7 @@ public class Model  extends JFrame {
         myPanel.add(addButton);
         myPanel.add(Box.createHorizontalStrut(400));
         myPanel.add(new JLabel("Map"));
-        String[] completedList = {"map1", "map2"};
+        String[] completedList = {"FirstMap", "SecondMap"};
         JComboBox comboBox = new JComboBox(completedList);
         comboBox.setSelectedIndex(0);
         comboBox.addActionListener(new ActionListener() {
@@ -65,16 +72,23 @@ public class Model  extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 JComboBox cb = (JComboBox)e.getSource();
                 String compStatus = (String)cb.getSelectedItem();
-                if(compStatus.equals("completed")) {
-                    comboBox.setSelectedIndex(0);
+                if(compStatus.equals("FirstMap")) {
+                    if(!currentMap.equals("FirstMap")) {
+                        currentMap = "FirstMap";
+                        changeMap(0);
+                    }
                 } else {
-                    comboBox.setSelectedIndex(1);
+                    if(!currentMap.equals("SecondMap")) {
+                        currentMap = "SecondMap";
+                        changeMap(1);
+                    }
                 }
             }
         });
+
         myPanel.add(comboBox);
 
-        imagePanel = new ImagePanel(floorPlanImages.get(1));
+        imagePanel = new ImagePanel(floorPlanImages.get(floorPlanIds.get(0)), walls.get(floorPlanIds.get(0)));
 
         Container contentPane = getContentPane();
         contentPane.add(myPanel, BorderLayout.PAGE_START);
@@ -92,6 +106,11 @@ public class Model  extends JFrame {
         setVisible(true);
     }
 
+
+    private void changeMap(int index) {
+
+        System.out.println("changed to map " + index);
+    }
     private void addNewTask() {
 
 //        JTextField descpField = new JTextField(15);
@@ -299,6 +318,38 @@ public class Model  extends JFrame {
         public void  setEndPoint(double endx, double endy) {
 
             this.endx = endx;
+            this.endy = endy;
+        }
+
+        public double getStartx() {
+            return startx;
+        }
+
+        public void setStartx(double startx) {
+            this.startx = startx;
+        }
+
+        public double getStarty() {
+            return starty;
+        }
+
+        public void setStarty(double starty) {
+            this.starty = starty;
+        }
+
+        public double getEndx() {
+            return endx;
+        }
+
+        public void setEndx(double endx) {
+            this.endx = endx;
+        }
+
+        public double getEndy() {
+            return endy;
+        }
+
+        public void setEndy(double endy) {
             this.endy = endy;
         }
     }

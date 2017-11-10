@@ -2,6 +2,7 @@ package com.preliminary.test;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import javax.swing.*;
 
@@ -12,15 +13,20 @@ public class ImagePanel extends JPanel {
 
     private BufferedImage image;
 
-    ImagePanel(BufferedImage image) {
+    private List<Model.Wall> initialWalls;
+
+    ImagePanel(BufferedImage image, List<Model.Wall> walls) {
 
         this.image = image;
-        //setSize(1000,800);
+        this.initialWalls = walls;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(image, 0, 0, this);
+        for(Model.Wall wall : initialWalls) {
+            g.drawLine((int) wall.getStartx(), (int) wall.getStarty(), (int) wall.getEndx(), (int) wall.getEndy());
+        }
     }
 }
