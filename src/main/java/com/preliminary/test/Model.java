@@ -15,6 +15,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.Buffer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,6 +58,20 @@ public class Model  extends JFrame {
     }
 
     private void initializeModel() {
+
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menu = new JMenu("File");
+        menuBar.add(menu);
+
+        JMenuItem menuItemOpenProject = new JMenuItem("Open Project");
+        menu.add(menuItemOpenProject);
+        menuItemOpenProject.addActionListener(e -> loadProject());
+
+        JMenuItem menuItemQuit = new JMenuItem("Quit");
+        menu.add(menuItemQuit);
+
+        setJMenuBar(menuBar);
+
 
         JButton addButton = new JButton("ADD WALL");
         addButton.addActionListener(e -> addNewTask());
@@ -104,6 +120,22 @@ public class Model  extends JFrame {
         //setLocationRelativeTo(null);
         setSize(1000,800);
         setVisible(true);
+    }
+
+    private void loadProject() {
+
+        final JFileChooser fc = new JFileChooser();
+        int returnVal = fc.showOpenDialog(this);
+
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            Path path = Paths.get(file.getAbsolutePath());
+            Path parentFolder = path.getParent();
+
+            String projectFileName = Paths.get(parentFolder.toString(), "project.xml").toString();
+            Map<Integer, List<Wall>> walls = parseXML(projectFileName);
+            Map<Integer, BufferedImage> floorPlanImages = readMapImages(parentFolder, walls.keySet());
+        }
     }
 
 
@@ -210,7 +242,7 @@ public class Model  extends JFrame {
     public static void main(String[] args) {
 
         String filenameDoc = "/home/vvirkkal/Documents/development/misc/eka-hau/ExerciseProject/project.xml";
-        String path = "/home/vvirkkal/Documents/development/misc/eka-hau/ExerciseProject/";
+        Path path = Paths.get("/home/vvirkkal/Documents/development/misc/eka-hau/ExerciseProject/");
 
         Map<Integer, List<Wall>> walls = parseXML(filenameDoc);
         Map<Integer, BufferedImage> floorPlanImages = readMapImages(path, walls.keySet());
@@ -268,14 +300,14 @@ public class Model  extends JFrame {
         return walls;
     }
 
-    private static Map<Integer, BufferedImage> readMapImages(String path, Set<Integer> floorIds) {
+    private static Map<Integer, BufferedImage> readMapImages(Path parentFolder, Set<Integer> floorIds) {
 
         Map<Integer, BufferedImage>  floorPlanImages = new HashMap<>();
         Iterator<Integer> iterator = floorIds.iterator();
         while(iterator.hasNext()) {
 
             int floorPlanId = iterator.next();
-            String floorPlan = path + "mapimage-" + floorPlanId + ".png";
+            String floorPlan = Paths.get(parentFolder.toString(), "mapimage-" + floorPlanId + ".png").toString();
             BufferedImage img = null;
             try {
                 img = ImageIO.read(new File(floorPlan));
