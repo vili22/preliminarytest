@@ -30,4 +30,10 @@ public class ImagePanel extends JPanel {
             g.drawLine((int) wall.getStartx(), (int) wall.getStarty(), (int) wall.getEndx(), (int) wall.getEndy());
         }
     }
+
+    public void changeFloorplan(BufferedImage image, List<Model.Wall> walls) {
+
+        this.image = image;
+        this.initialWalls = walls;
+    }
 }

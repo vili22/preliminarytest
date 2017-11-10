@@ -47,17 +47,14 @@ public class Model  extends JFrame {
 
     private String currentMap = "FirstMap";
 
-    public Model(Map<Integer, List<Wall>> walls, Map<Integer, BufferedImage> floorPlanImages) {
+    public Model() {
 
         super("Model");
-        this.floorPlanImages = floorPlanImages;
-        this.walls = walls;
-        this.floorPlanIds = new ArrayList<>(walls.keySet());
-        Collections.sort(floorPlanIds);
-        initializeModel();
+
+        initModel();
     }
 
-    private void initializeModel() {
+    private void initModel() {
 
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
@@ -68,10 +65,24 @@ public class Model  extends JFrame {
         menuItemOpenProject.addActionListener(e -> loadProject());
 
         JMenuItem menuItemQuit = new JMenuItem("Quit");
+        menuItemQuit.addActionListener(e ->  System.exit(0));
         menu.add(menuItemQuit);
 
         setJMenuBar(menuBar);
 
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        //setResizable(false);
+        //setLocationRelativeTo(null);
+        setSize(1000,800);
+        setVisible(true);
+    }
+
+    private void initializeModel(Map<Integer, List<Wall>> walls, Map<Integer, BufferedImage> floorPlanImages) {
+
+        this.floorPlanImages = floorPlanImages;
+        this.walls = walls;
+        this.floorPlanIds = new ArrayList<>(walls.keySet());
+        Collections.sort(floorPlanIds);
 
         JButton addButton = new JButton("ADD WALL");
         addButton.addActionListener(e -> addNewTask());
@@ -115,11 +126,6 @@ public class Model  extends JFrame {
         //add(imagePanel);
 
         //add(container);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        //setResizable(false);
-        //setLocationRelativeTo(null);
-        setSize(1000,800);
-        setVisible(true);
     }
 
     private void loadProject() {
@@ -135,13 +141,18 @@ public class Model  extends JFrame {
             String projectFileName = Paths.get(parentFolder.toString(), "project.xml").toString();
             Map<Integer, List<Wall>> walls = parseXML(projectFileName);
             Map<Integer, BufferedImage> floorPlanImages = readMapImages(parentFolder, walls.keySet());
+            initializeModel(walls, floorPlanImages);
+            setVisible(true);
+            repaint();
         }
     }
 
 
     private void changeMap(int index) {
 
-        System.out.println("changed to map " + index);
+        imagePanel.changeFloorplan(floorPlanImages.get(floorPlanIds.get(index)), walls.get(floorPlanIds.get(index)));
+        setVisible(true);
+        repaint();
     }
     private void addNewTask() {
 
@@ -247,7 +258,7 @@ public class Model  extends JFrame {
         Map<Integer, List<Wall>> walls = parseXML(filenameDoc);
         Map<Integer, BufferedImage> floorPlanImages = readMapImages(path, walls.keySet());
 
-        Model model = new Model(walls, floorPlanImages);
+        Model model = new Model();
     }
 
     private static Map<Integer, List<Wall>> parseXML(String fileName) {
