@@ -25,6 +25,7 @@ public class ImagePanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(image, 0, 0, this);
+        g.setColor(Color.red);
         for(Model.Wall wall : initialWalls) {
             g.drawLine((int) wall.getStartx(), (int) wall.getStarty(), (int) wall.getEndx(), (int) wall.getEndy());
         }
