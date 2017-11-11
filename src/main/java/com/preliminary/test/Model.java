@@ -170,13 +170,37 @@ public class Model  extends JFrame {
             Path path = Paths.get(file.getAbsolutePath());
             Path parentFolder = path.getParent();
 
-            String projectFileName = Paths.get(parentFolder.toString(), "project.xml").toString();
+            String projectFileName = Paths.get(parentFolder.toString(), file.getName()).toString();
+            if(!validateProjectFile(projectFileName)) {
+                JOptionPane.showMessageDialog(this, "Wrong project file-type should be xml");
+                return;
+            }
             Map<Integer, List<Wall>> walls = parseXML(projectFileName);
+            if(walls.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "unable to read any walls from the file");
+                return;
+            }
             Map<Integer, BufferedImage> floorPlanImages = readMapImages(parentFolder, walls.keySet());
+            if(floorPlanImages.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "unable to read all floorplan-image corresponding to levels");
+                return;
+            }
             initializeModel(walls, floorPlanImages);
             setVisible(true);
             repaint();
         }
+    }
+
+    public static boolean validateProjectFile(String fileName) {
+
+        String extension = "";
+
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) {
+            extension = fileName.substring(i+1);
+        }
+
+        return extension.equals("xml");
     }
 
 
@@ -195,7 +219,7 @@ public class Model  extends JFrame {
         Model model = new Model();
     }
 
-    private static Map<Integer, List<Wall>> parseXML(String fileName) {
+    public static Map<Integer, List<Wall>> parseXML(String fileName) {
 
         Map<Integer, List<Wall>> walls = new HashMap<>();
 
@@ -259,7 +283,7 @@ public class Model  extends JFrame {
                 floorPlanImages.put(floorPlanId, img);
             } catch (IOException e) {
                 e.printStackTrace();
-                return floorPlanImages;
+                return new HashMap<>();
             }
         }
         return floorPlanImages;
@@ -328,40 +352,6 @@ public class Model  extends JFrame {
 
         public void setEndy(double endy) {
             this.endy = endy;
-        }
-    }
-
-    public static class Task {
-
-        private String description;
-        private boolean completed;
-        private final String deadline;
-
-        public Task(String description, boolean completed, String deadline ) {
-
-            this.description = description;
-            this.completed = completed;
-            this.deadline = deadline;
-        }
-
-        public void setDescription(String descp) {
-            description = descp;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setCompleted(boolean comp) {
-            this.completed = comp;
-        }
-
-        public boolean isCompleted() {
-            return completed;
-        }
-
-        public String getDeadline() {
-            return deadline;
         }
     }
 }
