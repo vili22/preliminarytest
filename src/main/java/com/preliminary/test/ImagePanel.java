@@ -53,25 +53,25 @@ public class ImagePanel extends JPanel {
 
     public void translateUp() {
 
-        trans_y--;
+        trans_y -=2;
         repaint();
     }
 
     public void translateDown() {
 
-        trans_y++;
+        trans_y +=2;
         repaint();
     }
 
     public void translateLeft() {
 
-        trans_x--;
+        trans_x -= 2;
         repaint();
     }
 
     public void translateRight() {
 
-        trans_x++;
+        trans_x +=2;
         repaint();
     }
 
