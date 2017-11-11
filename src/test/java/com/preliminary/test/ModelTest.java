@@ -23,12 +23,14 @@ public class ModelTest {
     }
 
     @Test
-    public void testParseXML() {
+    public void testTranformCoordinate() {
 
-        String resource = "project.xml";
-        String fileName = ModelTest.class.getClassLoader().getResource(resource).getFile();
-        Map<Integer, List<Model.Wall>> walls = Model.parseXML(fileName);
-        assertTrue(walls.keySet().size() == 2);
+        double zoom = 1.5;
+        int shift = 4;
+        double coord = 5;
+
+        int tranformedCoord = ImagePanel.transformCoordinate(coord, zoom, shift);
+        assertTrue(tranformedCoord == 11);
     }
 
 }

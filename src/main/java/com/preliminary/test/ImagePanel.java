@@ -37,7 +37,7 @@ public class ImagePanel extends JPanel {
         g.drawImage(zoomedImage, trans_x, trans_y, this);
         g.setColor(Color.red);
         for(Model.Wall wall : initialWalls) {
-            g.drawLine((int)(zoom *wall.getStartx()) + trans_x, (int) (zoom * wall.getStarty()) + trans_y, (int) (zoom * wall.getEndx()) + trans_x, (int)(zoom * wall.getEndy())+ trans_y);
+            g.drawLine(transformCoordinate(wall.getStartx(), zoom, trans_x), transformCoordinate(wall.getStarty(), zoom, trans_y), transformCoordinate(wall.getEndx(), zoom, trans_x), transformCoordinate(wall.getEndy(), zoom, trans_y));
         }
     }
 
@@ -104,5 +104,10 @@ public class ImagePanel extends JPanel {
         AffineTransform at = AffineTransform.getScaleInstance(scale, scale);
         g2.drawRenderedImage(image, at);
         g2.dispose();
+    }
+
+    public static int transformCoordinate(double coordinate, double zoom, int shift) {
+
+        return (int)(zoom * coordinate) + shift;
     }
 }
