@@ -4,19 +4,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import sun.plugin.dom.core.Document;
-
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -65,7 +58,7 @@ public class Model  extends JFrame {
         menuItemOpenProject.addActionListener(e -> loadProject());
 
         JMenuItem menuItemQuit = new JMenuItem("Quit");
-        menuItemQuit.addActionListener(e ->  System.exit(0));
+        menuItemQuit.addActionListener(e -> System.exit(0));
         menu.add(menuItemQuit);
 
         setJMenuBar(menuBar);
@@ -121,7 +114,7 @@ public class Model  extends JFrame {
         Collections.sort(floorPlanIds);
 
         JButton addButton = new JButton("ADD WALL");
-        addButton.addActionListener(e -> addNewTask());
+        addButton.addActionListener(e -> addWall());
         addButton.setFocusable(false);
 
         JPanel myPanel = new JPanel();
@@ -132,9 +125,7 @@ public class Model  extends JFrame {
         JComboBox comboBox = new JComboBox(completedList);
         comboBox.setFocusable(false);
         comboBox.setSelectedIndex(0);
-        comboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        comboBox.addActionListener(e -> {
                 JComboBox cb = (JComboBox)e.getSource();
                 String compStatus = (String)cb.getSelectedItem();
                 if(compStatus.equals("FirstMap")) {
@@ -148,8 +139,7 @@ public class Model  extends JFrame {
                         changeMap(1);
                     }
                 }
-            }
-        });
+            });
 
         myPanel.add(comboBox);
 
@@ -210,7 +200,7 @@ public class Model  extends JFrame {
         setVisible(true);
         repaint();
     }
-    private void addNewTask() {
+    private void addWall() {
 
     }
 
