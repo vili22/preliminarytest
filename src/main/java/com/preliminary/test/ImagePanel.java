@@ -1,6 +1,8 @@
 package com.preliminary.test;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -15,6 +17,9 @@ public class ImagePanel extends JPanel {
 
     private List<Model.Wall> initialWalls;
 
+    private int trans_x = 0;
+    private int trans_y = 0;
+
     ImagePanel(BufferedImage image, List<Model.Wall> walls) {
 
         this.image = image;
@@ -24,10 +29,10 @@ public class ImagePanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(image, 0, 0, this);
+        g.drawImage(image, trans_x, trans_y, this);
         g.setColor(Color.red);
         for(Model.Wall wall : initialWalls) {
-            g.drawLine((int) wall.getStartx(), (int) wall.getStarty(), (int) wall.getEndx(), (int) wall.getEndy());
+            g.drawLine((int) wall.getStartx() + trans_x, (int) wall.getStarty() + trans_y, (int) wall.getEndx() + trans_x, (int) wall.getEndy()+ trans_y);
         }
     }
 
@@ -35,5 +40,39 @@ public class ImagePanel extends JPanel {
 
         this.image = image;
         this.initialWalls = walls;
+    }
+
+    public void translateUp() {
+
+        trans_y--;
+        repaint();
+    }
+
+    public void translateDown() {
+
+        trans_y++;
+        repaint();
+    }
+
+    public void translateLeft() {
+
+        trans_x--;
+        repaint();
+    }
+
+    public void translateRight() {
+
+        trans_x++;
+        repaint();
+    }
+
+    public void zoomIn() {
+
+        System.out.println("zoomin in");
+    }
+
+    public void zoomOut() {
+
+        System.out.println("zooming out");
     }
 }

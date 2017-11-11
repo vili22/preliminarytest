@@ -9,6 +9,8 @@ import sun.plugin.dom.core.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -36,8 +38,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class Model  extends JFrame {
 
     ImagePanel imagePanel;
-
-    private List<Task> tasks = new ArrayList<>();
 
     private Map<Integer, BufferedImage> floorPlanImages;
 
@@ -70,11 +70,47 @@ public class Model  extends JFrame {
 
         setJMenuBar(menuBar);
 
+        addMouseKeyListeners();
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         //setResizable(false);
         //setLocationRelativeTo(null);
         setSize(1000,800);
         setVisible(true);
+    }
+
+    private void addMouseKeyListeners() {
+
+        addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+                if(imagePanel == null) {
+                    return;
+                }
+                if(e.getKeyCode() == 38) {
+                    imagePanel.translateUp();
+                } else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
+                    imagePanel.translateDown();
+                } else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
+                    imagePanel.translateLeft();
+                }  else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                    imagePanel.translateRight();
+                } else if(e.getKeyCode() == KeyEvent.VK_A) {
+                    imagePanel.zoomIn();
+                }else if(e.getKeyCode() == KeyEvent.VK_D) {
+                    imagePanel.zoomOut();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
     }
 
     private void initializeModel(Map<Integer, List<Wall>> walls, Map<Integer, BufferedImage> floorPlanImages) {
@@ -86,6 +122,7 @@ public class Model  extends JFrame {
 
         JButton addButton = new JButton("ADD WALL");
         addButton.addActionListener(e -> addNewTask());
+        addButton.setFocusable(false);
 
         JPanel myPanel = new JPanel();
         myPanel.add(addButton);
@@ -93,6 +130,7 @@ public class Model  extends JFrame {
         myPanel.add(new JLabel("Map"));
         String[] completedList = {"FirstMap", "SecondMap"};
         JComboBox comboBox = new JComboBox(completedList);
+        comboBox.setFocusable(false);
         comboBox.setSelectedIndex(0);
         comboBox.addActionListener(new ActionListener() {
             @Override
@@ -120,12 +158,6 @@ public class Model  extends JFrame {
         Container contentPane = getContentPane();
         contentPane.add(myPanel, BorderLayout.PAGE_START);
         contentPane.add(imagePanel, BorderLayout.CENTER);
-        //container.add(buttonPane);
-        //container.add(imagePanel);
-        //add(buttonPane);
-        //add(imagePanel);
-
-        //add(container);
     }
 
     private void loadProject() {
@@ -156,107 +188,9 @@ public class Model  extends JFrame {
     }
     private void addNewTask() {
 
-//        JTextField descpField = new JTextField(15);
-//        JTextField deadLineField = new JTextField(15);
-//
-//        JPanel myPanel = new JPanel();
-//        myPanel.add(new JLabel("Description:"));
-//        myPanel.add(descpField);
-//        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
-//        myPanel.add(new JLabel("Deadline:"));
-//        myPanel.add(deadLineField);
-//
-//        String[] completedList = {"completed", "not completed"};
-//        JComboBox comboBox = new JComboBox(completedList);
-//        comboBox.setSelectedIndex(0);
-//        comboBox.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                JComboBox cb = (JComboBox)e.getSource();
-//                String compStatus = (String)cb.getSelectedItem();
-//                if(compStatus.equals("completed")) {
-//                    comboBox.setSelectedIndex(0);
-//                } else {
-//                    comboBox.setSelectedIndex(1);
-//                }
-//            }
-//        });
-//
-//        myPanel.add(Box.createHorizontalStrut(15));
-//        myPanel.add(comboBox);
-//
-//        int result = JOptionPane.showConfirmDialog(null, myPanel,
-//                "Task description", JOptionPane.OK_CANCEL_OPTION);
-//        if (result == JOptionPane.OK_OPTION) {
-//            String description = descpField.getText();
-//            String deadLine = deadLineField.getText();
-//            String completed = completedList[comboBox.getSelectedIndex()];
-//            boolean status = completed.equals("completed") ? true : false;
-//            tasks.add(new Task(description, status, deadLine));
-//            ((DefaultListModel)taskList.getModel()).addElement(description);
-//        }
-    }
-
-    private void removeTask() {
-
-    }
-
-    private void viewTaskInfo(int index) {
-
-//        Task task = tasks.get(index);
-//        String descp = task.getDescription();
-//        String deadline = task.getDeadline();
-//        JTextField descpField = new JTextField(descp);
-//        descpField.setColumns(15);
-//
-//        JPanel myPanel = new JPanel();
-//        myPanel.add(new JLabel("Description: "));
-//        myPanel.add(descpField);
-//        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
-//        myPanel.add(new JLabel("Deadline: " + deadline));
-//
-//        String[] completedList = {"completed", "not completed"};
-//        JComboBox comboBox = new JComboBox(completedList);
-//        if(task.isCompleted()) {
-//            comboBox.setSelectedIndex(0);
-//        } else {
-//            comboBox.setSelectedIndex(1);
-//        }
-//        comboBox.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                JComboBox cb = (JComboBox)e.getSource();
-//                String compStatus = (String)cb.getSelectedItem();
-//                if(compStatus.equals("completed")) {
-//                    comboBox.setSelectedIndex(0);
-//                } else {
-//                    comboBox.setSelectedIndex(1);
-//                }
-//            }
-//        });
-//
-//        myPanel.add(Box.createHorizontalStrut(15));
-//        myPanel.add(comboBox);
-//
-//        int result = JOptionPane.showConfirmDialog(null, myPanel,
-//                "Task description", JOptionPane.OK_CANCEL_OPTION);
-//        if(result == JOptionPane.OK_OPTION) {
-//            descp = descpField.getText();
-//            task.setDescription(descp);
-//            ((DefaultListModel)taskList.getModel()).setElementAt(task.getDescription(), index);
-//            String completed = completedList[comboBox.getSelectedIndex()];
-//            boolean status = completed.equals("completed") ? true : false;
-//            task.setCompleted(status);
-//        }
     }
 
     public static void main(String[] args) {
-
-        String filenameDoc = "/home/vvirkkal/Documents/development/misc/eka-hau/ExerciseProject/project.xml";
-        Path path = Paths.get("/home/vvirkkal/Documents/development/misc/eka-hau/ExerciseProject/");
-
-        Map<Integer, List<Wall>> walls = parseXML(filenameDoc);
-        Map<Integer, BufferedImage> floorPlanImages = readMapImages(path, walls.keySet());
 
         Model model = new Model();
     }
