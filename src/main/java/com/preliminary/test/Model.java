@@ -240,32 +240,40 @@ public class Model  extends JFrame {
             return walls;
         }
 
+        Map<Integer, Wall> allWalls = new HashMap<>();
+
         NodeList wallPoints = document.getElementsByTagName("wallPoint");
         int temp = 0;
         while(temp < wallPoints.getLength()) {
             Node nNode = wallPoints.item(temp);
-            Wall wall = new Wall();
             Element eElement = (Element) nNode;
             int mapId = Integer.parseInt(eElement.getAttribute("mapId"));
+            int wallPointId = Integer.parseInt(eElement.getAttribute("id"));
             double x1 = Double.parseDouble(eElement.getAttribute("x"));
             double y1 = Double.parseDouble(eElement.getAttribute("y"));
-            wall.setStartPoint(x1, y1);
-
-            temp++;
-            nNode = wallPoints.item(temp);
-            eElement = (Element) nNode;
-            x1 = Double.parseDouble(eElement.getAttribute("x"));
-            y1 = Double.parseDouble(eElement.getAttribute("y"));
-            wall.setEndPoint(x1, y1);
-            if(walls.containsKey(mapId)) {
-                walls.get(mapId).add(wall);
+            if(allWalls.containsKey(wallPointId-1)) {
+                allWalls.get(wallPointId - 1).setEndPoint(x1, y1);
             } else {
-                List<Wall> floorWalls = new ArrayList<>();
-                floorWalls.add(wall);
-                walls.put(mapId, floorWalls);
+                Wall wall = new Wall(mapId);
+                wall.setStartPoint(x1, y1);
+                allWalls.put(wallPointId, wall);
             }
             temp++;
         }
+
+        for(Map.Entry<Integer, Wall> wallEntry : allWalls.entrySet()) {
+
+            if(wallEntry.getValue().isCompleted()) {
+                if (!walls.containsKey(wallEntry.getValue().getMapId())) {
+                    List<Wall> floorWalls = new ArrayList<>();
+                    floorWalls.add(wallEntry.getValue());
+                    walls.put(wallEntry.getValue().getMapId(), floorWalls);
+                } else {
+                    walls.get(wallEntry.getValue().getMapId()).add(wallEntry.getValue());
+                }
+            }
+        }
+
         return walls;
     }
 
@@ -301,15 +309,25 @@ public class Model  extends JFrame {
 
     public static class Wall {
 
-        double startx;
-        double starty;
-        double endx;
-        double endy;
+        private double startx;
+        private double starty;
+        private double endx;
+        private double endy;
 
-        public Wall() {
+        private boolean completed;
 
+        private int mapId;
+
+        public Wall(int mapId) {
+
+            this.mapId = mapId;
         }
 
+
+        public int getMapId() {
+
+            return mapId;
+        }
         public void setStartPoint(double startx, double starty) {
 
             this.startx = startx;
@@ -320,6 +338,12 @@ public class Model  extends JFrame {
 
             this.endx = endx;
             this.endy = endy;
+            this.completed = true;
+        }
+
+        public boolean isCompleted() {
+
+            return completed;
         }
 
         public double getStartx() {
