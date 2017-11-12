@@ -10,18 +10,24 @@ import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -32,13 +38,11 @@ public class Model  extends JFrame {
 
     ImagePanel imagePanel;
 
-    private Map<Integer, BufferedImage> floorPlanImages;
+    private Map<String, BufferedImage> floorPlanImages = new HashMap<>();
 
-    private Map<Integer, List<Wall>> walls;
+    private Map<String, List<Wall>> walls;
 
-    private List<Integer> floorPlanIds;
-
-    private String currentMap = "FirstMap";
+    private String currentMap;
 
     public Model() {
 
@@ -67,7 +71,7 @@ public class Model  extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         //setResizable(false);
         //setLocationRelativeTo(null);
-        setSize(1000,800);
+        setSize(1000, 800);
         setVisible(true);
     }
 
@@ -81,20 +85,20 @@ public class Model  extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
 
-                if(imagePanel == null) {
+                if (imagePanel == null) {
                     return;
                 }
-                if(e.getKeyCode() == 38) {
-                    imagePanel.translateUp();
-                } else if(e.getKeyCode() == KeyEvent.VK_DOWN) {
+                if (e.getKeyCode() == KeyEvent.VK_UP) {
                     imagePanel.translateDown();
-                } else if(e.getKeyCode() == KeyEvent.VK_LEFT) {
-                    imagePanel.translateLeft();
-                }  else if(e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                    imagePanel.translateUp();
+                } else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
                     imagePanel.translateRight();
-                } else if(e.getKeyCode() == KeyEvent.VK_A) {
+                } else if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+                    imagePanel.translateLeft();
+                } else if (e.getKeyCode() == KeyEvent.VK_A) {
                     imagePanel.zoomIn();
-                }else if(e.getKeyCode() == KeyEvent.VK_D) {
+                } else if (e.getKeyCode() == KeyEvent.VK_D) {
                     imagePanel.zoomOut();
                 }
             }
@@ -106,12 +110,11 @@ public class Model  extends JFrame {
         });
     }
 
-    private void initializeModel(Map<Integer, List<Wall>> walls, Map<Integer, BufferedImage> floorPlanImages) {
+    private void initializeModel(ProjectStructure projectStructure) {
 
-        this.floorPlanImages = floorPlanImages;
-        this.walls = walls;
-        this.floorPlanIds = new ArrayList<>(walls.keySet());
-        Collections.sort(floorPlanIds);
+        this.floorPlanImages = projectStructure.getFloorPlanImages();
+        this.walls = projectStructure.getWalls();
+        this.currentMap = projectStructure.getFloorPlanName(0);
 
         JButton addButton = new JButton("ADD WALL");
         addButton.addActionListener(e -> addWall());
@@ -121,29 +124,22 @@ public class Model  extends JFrame {
         myPanel.add(addButton);
         myPanel.add(Box.createHorizontalStrut(400));
         myPanel.add(new JLabel("Map"));
-        String[] completedList = {"FirstMap", "SecondMap"};
+        String[] completedList = {projectStructure.getFloorPlanName(0), projectStructure.getFloorPlanName(1)};
         JComboBox comboBox = new JComboBox(completedList);
         comboBox.setFocusable(false);
         comboBox.setSelectedIndex(0);
         comboBox.addActionListener(e -> {
-                JComboBox cb = (JComboBox)e.getSource();
-                String compStatus = (String)cb.getSelectedItem();
-                if(compStatus.equals("FirstMap")) {
-                    if(!currentMap.equals("FirstMap")) {
-                        currentMap = "FirstMap";
-                        changeMap(0);
-                    }
-                } else {
-                    if(!currentMap.equals("SecondMap")) {
-                        currentMap = "SecondMap";
-                        changeMap(1);
-                    }
-                }
-            });
+            JComboBox cb = (JComboBox) e.getSource();
+            String compMapName = (String) cb.getSelectedItem();
+            if (!currentMap.equals(compMapName)) {
+                currentMap = compMapName;
+                changeMap(currentMap);
+            }
+        });
 
         myPanel.add(comboBox);
 
-        imagePanel = new ImagePanel(floorPlanImages.get(floorPlanIds.get(0)), walls.get(floorPlanIds.get(0)));
+        imagePanel = new ImagePanel(floorPlanImages.get(projectStructure.getFloorPlanName(0)), walls.get(projectStructure.getFloorPlanName(0)));
 
         Container contentPane = getContentPane();
         contentPane.add(myPanel, BorderLayout.PAGE_START);
@@ -153,53 +149,53 @@ public class Model  extends JFrame {
     private void loadProject() {
 
         final JFileChooser fc = new JFileChooser();
+        fc.setFileFilter(new FileNameExtensionFilter("Zip-filter", "zip"));
         int returnVal = fc.showOpenDialog(this);
-
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fc.getSelectedFile();
-            Path path = Paths.get(file.getAbsolutePath());
-            Path parentFolder = path.getParent();
 
-            String projectFileName = Paths.get(parentFolder.toString(), file.getName()).toString();
-            if(!validateProjectFile(projectFileName)) {
-                JOptionPane.showMessageDialog(this, "Wrong project file-type should be xml");
+            ProjectStructure projectStructure = null;
+            try {
+                projectStructure = loadProjectFromZipFile(file.getAbsolutePath());
+            } catch(Exception e) {
+                JOptionPane.showMessageDialog(this, "Unable to parse project file. Error " + e.getMessage());
                 return;
             }
-            Map<Integer, List<Wall>> walls = parseXML(projectFileName);
-            if(walls.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "unable to read any walls from the file");
-                return;
-            }
-            Map<Integer, BufferedImage> floorPlanImages = readMapImages(parentFolder, walls.keySet());
-            if(floorPlanImages.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "unable to read all floorplan-image corresponding to levels");
-                return;
-            }
-            initializeModel(walls, floorPlanImages);
+
+            initializeModel(projectStructure);
             setVisible(true);
             repaint();
         }
     }
 
-    public static boolean validateProjectFile(String fileName) {
-
-        String extension = "";
+    public static boolean checkExtension(String fileName, String testExtension) {
 
         int i = fileName.lastIndexOf('.');
+        String extension  = null;
         if (i > 0) {
-            extension = fileName.substring(i+1);
+            extension = fileName.substring(i + 1);
         }
 
-        return extension.equals("xml");
+        return extension != null ? extension.equals(testExtension) : false;
+    }
+
+    private static int  parseFloorPlanId(String fileName) {
+
+        int start = fileName.lastIndexOf("-");
+        int end = fileName.lastIndexOf('.');
+
+        String floorPlanId = fileName.substring(start +1, end);
+        return Integer.parseInt(floorPlanId);
     }
 
 
-    private void changeMap(int index) {
+    private void changeMap(String mapName) {
 
-        imagePanel.changeFloorplan(floorPlanImages.get(floorPlanIds.get(index)), walls.get(floorPlanIds.get(index)));
+        imagePanel.changeFloorplan(floorPlanImages.get(mapName), walls.get(mapName));
         setVisible(true);
         repaint();
     }
+
     private void addWall() {
 
     }
@@ -207,29 +203,59 @@ public class Model  extends JFrame {
     public static void main(String[] args) {
 
         Model model = new Model();
+
     }
 
-    public static Map<Integer, List<Wall>> parseXML(String fileName) {
+    private static ProjectStructure loadProjectFromZipFile(String zipFileName) throws Exception {
 
-        Map<Integer, List<Wall>> walls = new HashMap<>();
+        ZipFile zip = new ZipFile(zipFileName);
+
+        ProjectStructure projectStructure = null;
+        Map<Integer, BufferedImage> parsedImages = new HashMap<>();
+
+        Enumeration<? extends ZipEntry> entries = zip.entries();
+        while(entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+            if (checkExtension(entry.getName(), "png")) {
+                BufferedImage image = ImageIO.read(zip.getInputStream(entry));
+                parsedImages.put(parseFloorPlanId(entry.getName()), image);
+            } else if (checkExtension(entry.getName(), "xml")) {
+                projectStructure = parseXML(zip.getInputStream(entry));
+            }
+        }
+
+        if(projectStructure != null) {
+            projectStructure.setFloorPlanImages(parsedImages);
+        }
+        return projectStructure;
+    }
+
+    public static ProjectStructure parseXML(InputStream inputStream) throws Exception{
+
+        ProjectStructure projectStructure = new ProjectStructure();
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder db;
-        try {
-            db = factory.newDocumentBuilder();
-        } catch(Exception e) {
-            e.printStackTrace();
-            return walls;
-        }
+        db = factory.newDocumentBuilder();
 
         org.w3c.dom.Document document = null;
-        try {
-            document = db.parse(fileName);
-        }catch(Exception e) {
-            e.printStackTrace();
-            return walls;
+        document = db.parse(inputStream);
+
+        Map<Integer, String> floorPlanNames = new HashMap<>();
+        NodeList floorPlans = document.getElementsByTagName("map");
+        for(int k = 0; k < floorPlans.getLength(); k++) {
+            Node nNode = floorPlans.item(k);
+            Element eElement = (Element) nNode;
+            int id = Integer.parseInt(eElement.getAttribute("id"));
+            String name = eElement.getAttribute("name");
+            floorPlanNames.put(id, name);
+
         }
 
+
+        projectStructure.setFloorPlanIdToNameMap(floorPlanNames);
+
+        Map<String, List<Wall>> walls = new HashMap<>();
         Map<Integer, Wall> allWalls = new HashMap<>();
 
         NodeList wallPoints = document.getElementsByTagName("wallPoint");
@@ -244,7 +270,7 @@ public class Model  extends JFrame {
             if(allWalls.containsKey(wallPointId-1)) {
                 allWalls.get(wallPointId - 1).setEndPoint(x1, y1);
             } else {
-                Wall wall = new Wall(mapId);
+                Wall wall = new Wall(floorPlanNames.get(mapId));
                 wall.setStartPoint(x1, y1);
                 allWalls.put(wallPointId, wall);
             }
@@ -264,7 +290,8 @@ public class Model  extends JFrame {
             }
         }
 
-        return walls;
+        projectStructure.setWalls(walls);
+        return projectStructure;
     }
 
     private static Map<Integer, BufferedImage> readMapImages(Path parentFolder, Set<Integer> floorIds) {
@@ -297,6 +324,57 @@ public class Model  extends JFrame {
         }
     }
 
+    public static class ProjectStructure {
+
+        private Map<Integer, String> floorPlanIdToNameMap;
+        private Map<String, List<Wall>> walls;
+        private Map<String, BufferedImage> floorPlanImages;
+        private List<Integer> orderedIds;
+
+        public ProjectStructure() {}
+
+        public void setFloorPlanIdToNameMap(Map<Integer, String> floorPlanIdToNameMap) {
+
+            this.floorPlanIdToNameMap = floorPlanIdToNameMap;
+        }
+
+        public void setWalls(Map<String, List<Wall>> walls) {
+
+            this.walls = walls;
+        }
+
+        public Map<String, List<Wall>> getWalls() {
+
+            return walls;
+        }
+
+        public Map<String, BufferedImage> getFloorPlanImages() {
+
+            return floorPlanImages;
+        }
+
+        public void setFloorPlanImages(Map<Integer, BufferedImage> images) {
+
+            this.floorPlanImages = new HashMap<>();
+            for(Map.Entry<Integer, BufferedImage> entry : images.entrySet()) {
+                floorPlanImages.put(floorPlanIdToNameMap.get(entry.getKey()), entry.getValue());
+            }
+
+            orderedIds = new ArrayList<>(images.keySet());
+            Collections.sort(orderedIds);
+        }
+
+        public List<Integer> getOrderedIds() {
+
+            return orderedIds;
+        }
+
+        public String getFloorPlanName(int index) {
+
+            return floorPlanIdToNameMap.get(orderedIds.get(index));
+        }
+    }
+
     public static class Wall {
 
         private double startx;
@@ -306,15 +384,15 @@ public class Model  extends JFrame {
 
         private boolean completed;
 
-        private int mapId;
+        private String mapId;
 
-        public Wall(int mapId) {
+        public Wall(String mapId) {
 
             this.mapId = mapId;
         }
 
 
-        public int getMapId() {
+        public String getMapId() {
 
             return mapId;
         }

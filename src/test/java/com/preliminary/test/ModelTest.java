@@ -2,9 +2,6 @@ package com.preliminary.test;
 
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.Assert.*;
 
 /**
@@ -16,10 +13,10 @@ public class ModelTest {
     public void testCorrectProjectFile() {
 
         String correctFile = "testpath/project.xml";
-        assertTrue(Model.validateProjectFile(correctFile));
+        assertTrue(Model.checkExtension(correctFile, "xml"));
 
         String inCorrectFile = "testpath/project.jpg";
-        assertFalse(Model.validateProjectFile(inCorrectFile));
+        assertFalse(Model.checkExtension(inCorrectFile, "xml"));
     }
 
     @Test
